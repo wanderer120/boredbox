@@ -10,9 +10,6 @@ screenUI.font = "12px Arial";
 let shouldFlipImage = false;
 let monPosX = 0;
 let monFace = 0;
-let monMoveSeq = 0b10011010;
-let monMoveFramePointer = 0;
-let monState = 0;
 
 let monsterWalk1Buffer = new ArrayBuffer(32);
 let monsterWalk2Buffer = new ArrayBuffer(32);
@@ -74,85 +71,34 @@ monsterWalk2Pixel[15] = 0b0000111111110000;
 let screenBuffer = new ArrayBuffer(64);
 let screenBinArr = new Uint16Array(screenBuffer);
 
-
-
-// screenUI.fillText("\u{25A0}\u{25A0}\u{25A0}\u{25A0}\u{25A0}", 10, 50);
-// screenUI.fillText("\u{25A0}\u{25A0}\u{25A0}\u{25A0}\u{25A0}", 10, 56);
-// screenUI.fillText("\u{25A0}\u{25A0}\u{25A1}\u{25A0}\u{25A0}", 10, 62);
-// screenUI.fillText("\u{25A0}\u{25A0}\u{25A0}\u{25A0}\u{25A0}", 10, 68);
-// screenUI.fillText("\u{25A0}\u{25A0}\u{25A0}\u{25A0}\u{25A0}", 10, 74);
-
-//0001111111110000000000000000000000000000000000000000000000
-//test monster
-for (let i = 15; i < 16; i++) {
-    // let pixelRow = addExtraZero(monsterWalk1Pixel[i],32,monPosX);
-    // console.log(screenBinArr[i].toString(2));
-    // screenBinArr[i] = screenBinArr[i] ^ pixelRow;
-    // screenBinArr[i] = screenBinArr[i] >> 1;
-    // console.log("before:"+monsterWalk1Pixel[i].toString(2));
-    let monsterPixelRow = addExtraZeroStr(monsterWalk1Pixel[i],32,monPosX);
-    // console.log('after:'+monsterPixelRow);
-}
-// monsterWalk1Pixel = flipMonster(monsterWalk1Pixel);
-
-// let test = flipMonster(monsterWalk1Pixel);
+let monsterPixel = monsterWalk1Pixel;
 setInterval(()=>{
     let screenArr = [];
     //init blank screen
     for (let i = 0; i < 16; i++) {
         screenBinArr[i] = 0;
     }
-    let monsterPixel = monsterWalk1Pixel;
-
-    // monState = updateFrame(monMoveSeq);
-    // // console.log(monState);
-    // let isChangeState = false;
-    // switch(monState){
-    //     case 0:
-    //         monsterPixel = monsterWalk1Pixel;
-    //         break;
-    //     case 1:
-    //         //roar
-    //         monsterPixel = monsterWalk2Pixel;
-    //         isChangeState = true;
-    //         break;
-    // }
-    // console.log(`before monFace:${monFace} shouldFlipImage:${shouldFlipImage}`);
-    // //flip monster image
-    // if(monFace === 1){
-    //     monsterPixel = flipMonster(monsterPixel);
-    //     // shouldFlipImage = false;
-    // }
-    // console.log(`after monFace:${monFace} shouldFlipImage:${shouldFlipImage}`);
-    // if(isChangeState == false){
-    //     // move monster randomly;
-    //     moveMonster();
-    // }
         
-    
+    let isMove = true;
     let rnd = Math.floor((Math.random() * 5) + 1);
-    if(rnd === 5 ){
-        monState = 1;
-    }
-    if(monState === 1){
+    if(rnd === 5){
         monsterPixel = monsterWalk2Pixel;
-        monState = 0;
+        isMove = false;
     }else{
         monsterPixel = monsterWalk1Pixel;
     }
-    if(monFace === 1){
-        monsterPixel = flipMonster(monsterPixel);
-        // shouldFlipImage = false;
+    if(shouldFlipImage){
+        monsterWalk2Pixel = flipMonster(monsterWalk2Pixel);
+        monsterWalk1Pixel = flipMonster(monsterWalk1Pixel);
+        shouldFlipImage = false;
     }
-    moveMonster();
+    if(isMove){
+        moveMonster();
+    }
+    
     
     //draw screen
     for(let i=0;i<16;i++){
-        //draw monster
-        // let pixelRow = addExtraZero(screenBinArr[i],32,0);
-        // pixelRow = pixelRow.replace(/0/g,'\u{25A1}').replace(/1/g,'\u{25A0}');
-        // screenArr.push(pixelRow);
-        
         let pixelRow = addExtraZeroStr(monsterPixel[i],32,monPosX);
         pixelRow = pixelRow.replace(/0/g,'\u{25A1}').replace(/1/g,'\u{25A0}');
         screenArr.push(pixelRow);
@@ -203,7 +149,6 @@ function addExtraZeroStr(binaryStr, width, xPos){
     return extraZeroFront + binArr + extraZeroBack;
 }
 function moveMonster(){
-    // monFace = Math.round(Math.random());
     if(monPosX - 1 < 0){
         monFace = 1;
         shouldFlipImage = true;
@@ -212,6 +157,7 @@ function moveMonster(){
         monFace = 0;
         shouldFlipImage = true;
     }
+    
     let rnd = Math.floor((Math.random() * 10) + 1);
     if(rnd === 10){
         monFace = (monFace===0)?1:0;
@@ -229,9 +175,7 @@ function moveMonster(){
 function flipMonster(pixelArr){
     let _pixelArr = pixelArr;
     for(let i=0; i<16; i++){
-        // console.log('before:'+_pixelArr[i].toString(2));
         _pixelArr[i] = mirror_bits(_pixelArr[i]);
-        // console.log('after:'+_pixelArr[i].toString(2));
     }
     return _pixelArr;
 }
